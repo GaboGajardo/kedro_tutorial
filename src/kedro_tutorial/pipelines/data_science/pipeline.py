@@ -34,22 +34,26 @@ Delete this when you start working on your own Kedro project.
 
 from kedro.pipeline import Pipeline, node
 
-from .nodes import predict, report_accuracy, train_model
+from kedro_tutorial.pipelines.data_science.nodes import (
+    evaluate_model,
+    split_data,
+    train_model,
+)
 
 
 def create_pipeline(**kwargs):
     return Pipeline(
         [
             node(
-                train_model,
-                ["example_train_x", "example_train_y", "parameters"],
-                "example_model",
+                func=split_data,
+                inputs=["master_table", "parameters"],
+                outputs=["X_train", "X_test", "y_train", "y_test"],
             ),
+            node(func=train_model, inputs=["X_train", "y_train"], outputs="regressor"),
             node(
-                predict,
-                dict(model="example_model", test_x="example_test_x"),
-                "example_predictions",
+                func=evaluate_model,
+                inputs=["regressor", "X_test", "y_test"],
+                outputs=None,
             ),
-            node(report_accuracy, ["example_predictions", "example_test_y"], None),
         ]
     )
